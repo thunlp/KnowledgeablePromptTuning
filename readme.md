@@ -1,6 +1,7 @@
-## KPT source code
+## Knowledgeable Prompt-tuning: Incorporating Knowledge into Prompt Verbalizer for Text Classification 
 
-This is KPT's source code ([Paper](https://arxiv.org/abs/2108.02035))
+This is Knowledgeable Prompt-tuning: Incorporating Knowledge into Prompt Verbalizer for Text Classification (ACL 2022) 's source code ([Paper](https://arxiv.org/abs/2108.02035))
+
 
 ### Environments
 ```

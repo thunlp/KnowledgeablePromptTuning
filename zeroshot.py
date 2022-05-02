@@ -60,8 +60,8 @@ elif args.dataset == "dbpedia":
     max_seq_l = 128
     batch_s = 30
 elif args.dataset == "yahoo":
-    dataset['train'] = YahooAnswersTopicsProcessor().get_train_examples()
-    dataset['test'] = YahooAnswersTopicsProcessor().get_test_examples()
+    dataset['train'] = YahooAnswersTopicsProcessor().get_train_examples(f"{args.openprompt_path}/datasets/TextClassification/yahoo_answers_topics/")
+    dataset['test'] = YahooAnswersTopicsProcessor().get_test_examples(f"{args.openprompt_path}/datasets/TextClassification/yahoo_answers_topics/")
     class_labels =YahooAnswersTopicsProcessor().get_labels()
     scriptsbase = "TextClassification/yahoo_answers_topics"
     scriptformat = "json"
@@ -110,8 +110,8 @@ if args.calibration:
 
     for example in dataset['support']:
         example.label = -1 # remove the labels of support set for clarification
-    support_dataloader = PromptDataLoader(dataset=dataset["support"], template=mytemplate, tokenizer=tokenizer, 
-        tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+    support_dataloader = PromptDataLoader(dataset=dataset["support"], template=mytemplate, tokenizer=tokenizer,
+        tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
         batch_size=batch_s,shuffle=False, teacher_forcing=False, predict_eos_token=False,
         truncate_method="tail")
 
@@ -147,10 +147,10 @@ if args.calibration:
     else:
         raise NotImplementedError
 
-    
+
     # register the logits to the verbalizer so that the verbalizer will divide the calibration probability in producing label logits
     # currently, only ManualVerbalizer and KnowledgeableVerbalizer support calibration.
-    
+
 #
 if args.write_filter_record:
     record_prefix = "="*20+"\n"
@@ -167,8 +167,8 @@ if args.write_filter_record:
 
 
 # zero-shot test
-test_dataloader = PromptDataLoader(dataset=dataset["test"], template=mytemplate, tokenizer=tokenizer, 
-    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+test_dataloader = PromptDataLoader(dataset=dataset["test"], template=mytemplate, tokenizer=tokenizer,
+    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
     batch_size=batch_s,shuffle=False, teacher_forcing=False, predict_eos_token=False,
     truncate_method="tail")
 allpreds = []

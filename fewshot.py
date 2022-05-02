@@ -65,8 +65,8 @@ elif args.dataset == "dbpedia":
     max_seq_l = 128
     batch_s = 30
 elif args.dataset == "yahoo":
-    dataset['train'] = YahooAnswersTopicsProcessor().get_train_examples()
-    dataset['test'] = YahooAnswersTopicsProcessor().get_test_examples()
+    dataset['train'] = YahooAnswersTopicsProcessor().get_train_examples(f"{args.openprompt_path}/datasets/TextClassification/yahoo_answers_topics/")
+    dataset['test'] = YahooAnswersTopicsProcessor().get_test_examples(f"{args.openprompt_path}/datasets/TextClassification/yahoo_answers_topics/")
     class_labels =YahooAnswersTopicsProcessor().get_labels()
     scriptsbase = "TextClassification/yahoo_answers_topics"
     scriptformat = "json"
@@ -117,8 +117,8 @@ if args.verbalizer in ["kpt","manual"]:
 
         # for example in dataset['support']:
         #     example.label = -1 # remove the labels of support set for clarification
-        support_dataloader = PromptDataLoader(dataset=dataset["support"], template=mytemplate, tokenizer=tokenizer, 
-            tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+        support_dataloader = PromptDataLoader(dataset=dataset["support"], template=mytemplate, tokenizer=tokenizer,
+            tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
             batch_size=batch_s,shuffle=False, teacher_forcing=False, predict_eos_token=False,
             truncate_method="tail")
 
@@ -156,7 +156,7 @@ if args.verbalizer in ["kpt","manual"]:
     else:
         raise NotImplementedError
 
-    
+
     # register the logits to the verbalizer so that the verbalizer will divide the calibration probability in producing label logits
     # currently, only ManualVerbalizer and KnowledgeableVerbalizer support calibration.
 
@@ -165,19 +165,19 @@ sampler = FewShotSampler(num_examples_per_label=args.shot, also_sample_dev=True,
 dataset['train'], dataset['validation'] = sampler(dataset['train'], seed=args.seed)
 
 
-train_dataloader = PromptDataLoader(dataset=dataset["train"], template=mytemplate, tokenizer=tokenizer, 
-    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+train_dataloader = PromptDataLoader(dataset=dataset["train"], template=mytemplate, tokenizer=tokenizer,
+    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
     batch_size=batch_s,shuffle=True, teacher_forcing=False, predict_eos_token=False,
     truncate_method="tail")
 
-validation_dataloader = PromptDataLoader(dataset=dataset["validation"], template=mytemplate, tokenizer=tokenizer, 
-    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+validation_dataloader = PromptDataLoader(dataset=dataset["validation"], template=mytemplate, tokenizer=tokenizer,
+    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
     batch_size=batch_s,shuffle=False, teacher_forcing=False, predict_eos_token=False,
     truncate_method="tail")
 
 # zero-shot test
-test_dataloader = PromptDataLoader(dataset=dataset["test"], template=mytemplate, tokenizer=tokenizer, 
-    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3, 
+test_dataloader = PromptDataLoader(dataset=dataset["test"], template=mytemplate, tokenizer=tokenizer,
+    tokenizer_wrapper_class=WrapperClass, max_seq_length=max_seq_l, decoder_max_length=3,
     batch_size=batch_s,shuffle=False, teacher_forcing=False, predict_eos_token=False,
     truncate_method="tail")
 
@@ -211,7 +211,7 @@ def prompt_initialize(verbalizer, prompt_model, init_dataloader):
             batch = batch.cuda()
             logits = prompt_model(batch)
         verbalizer.optimize_to_initialize()
-   
+
 
 if args.verbalizer == "soft":
 
@@ -237,11 +237,11 @@ if args.verbalizer == "soft":
 
     tot_step = len(train_dataloader) // args.gradient_accumulation_steps * args.max_epochs
     scheduler1 = get_linear_schedule_with_warmup(
-        optimizer1, 
+        optimizer1,
         num_warmup_steps=0, num_training_steps=tot_step)
 
     scheduler2 = get_linear_schedule_with_warmup(
-        optimizer2, 
+        optimizer2,
         num_warmup_steps=0, num_training_steps=tot_step)
 
 elif args.verbalizer == "auto":
@@ -261,9 +261,9 @@ elif args.verbalizer == "auto":
 
     tot_step = len(train_dataloader) // args.gradient_accumulation_steps * args.max_epochs
     scheduler1 = get_linear_schedule_with_warmup(
-        optimizer1, 
+        optimizer1,
         num_warmup_steps=0, num_training_steps=tot_step)
-    
+
     optimizer2 = None
     scheduler2 = None
 
@@ -287,11 +287,11 @@ elif args.verbalizer == "kpt":
 
     tot_step = len(train_dataloader) // args.gradient_accumulation_steps * args.max_epochs
     scheduler1 = get_linear_schedule_with_warmup(
-        optimizer1, 
+        optimizer1,
         num_warmup_steps=0, num_training_steps=tot_step)
 
     # scheduler2 = get_linear_schedule_with_warmup(
-    #     optimizer2, 
+    #     optimizer2,
     #     num_warmup_steps=0, num_training_steps=tot_step)
     scheduler2 = None
 
@@ -310,18 +310,18 @@ elif args.verbalizer == "manual":
 
     tot_step = len(train_dataloader) // args.gradient_accumulation_steps * args.max_epochs
     scheduler1 = get_linear_schedule_with_warmup(
-        optimizer1, 
+        optimizer1,
         num_warmup_steps=0, num_training_steps=tot_step)
-    
+
     optimizer2 = None
     scheduler2 = None
 
 
-tot_loss = 0 
+tot_loss = 0
 log_loss = 0
 best_val_acc = 0
 for epoch in range(args.max_epochs):
-    tot_loss = 0 
+    tot_loss = 0
     prompt_model.train()
     for step, inputs in enumerate(train_dataloader):
         if use_cuda:
@@ -340,7 +340,7 @@ for epoch in range(args.max_epochs):
             optimizer2.zero_grad()
         if scheduler2 is not None:
             scheduler2.step()
-            
+
     val_acc = evaluate(prompt_model, validation_dataloader, desc="Valid")
     if val_acc>=best_val_acc:
         torch.save(prompt_model.state_dict(),f"ckpts/{this_run_unicode}.ckpt")
@@ -350,7 +350,7 @@ for epoch in range(args.max_epochs):
 prompt_model.load_state_dict(torch.load(f"ckpts/{this_run_unicode}.ckpt"))
 prompt_model = prompt_model.cuda()
 test_acc = evaluate(prompt_model, test_dataloader, desc="Test")
-        
+
 
 
 

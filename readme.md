@@ -12,6 +12,7 @@ Please install via git clone. This helps keep the dataset downloading scripts.
 ```bash
 git clone git@github.com:thunlp/OpenPrompt.git
 cd OpenPrompt
+pip install -r requirements.txt
 python setup.py install
 ```
 
